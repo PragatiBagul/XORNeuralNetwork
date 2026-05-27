@@ -195,20 +195,6 @@ def train_sgd(epochs, X_train, y_train, nn, lr=0.1):
         nn.history["w2"].append(nn.weights[1].copy())
         nn.history["predictions"].append(full_pred.copy())
 
-
-# ============================================================
-# DATASET
-# ============================================================
-
-input_dim = 2
-
-X_raw = generate_dataset(input_dim)
-y_raw = generate_true_labels(X_raw)
-
-X = np.array(X_raw, dtype=np.float32)
-y = np.array(y_raw, dtype=np.float32).reshape(-1, 1)
-
-
 # ============================================================
 # STREAMLIT SIDEBAR
 # ============================================================
@@ -219,7 +205,19 @@ optimizer = st.sidebar.selectbox(
     "Optimizer",
     ["Batch Gradient Descent", "Stochastic Gradient Descent"]
 )
-input_dim = st.sidebar.slider("Hidden Neurons", 2, 100, 4)
+input_dim = st.sidebar.slider("Input Dimensions", 2, 100, 4)
+
+# ============================================================
+# DATASET
+# ============================================================
+
+
+X_raw = generate_dataset(input_dim)
+y_raw = generate_true_labels(X_raw)
+
+X = np.array(X_raw, dtype=np.float32)
+y = np.array(y_raw, dtype=np.float32).reshape(-1, 1)
+
 hidden_dim = st.sidebar.slider("Hidden Neurons", 2, 10, 4)
 
 learning_rate = st.sidebar.slider(
@@ -326,32 +324,40 @@ st.dataframe(prediction_table)
 # DECISION BOUNDARY
 # ============================================================
 
-st.subheader("Decision Boundary")
+if input_dim == 2:
 
-xx, yy = np.meshgrid(
-    np.linspace(-0.5, 1.5, 100),
-    np.linspace(-0.5, 1.5, 100)
-)
+    st.subheader("Decision Boundary")
 
-mesh_input = np.c_[xx.ravel(), yy.ravel()]
+    xx, yy = np.meshgrid(
+        np.linspace(-0.5, 1.5, 100),
+        np.linspace(-0.5, 1.5, 100)
+    )
 
-Z = nn.forward(mesh_input)
-Z = Z.reshape(xx.shape)
+    mesh_input = np.c_[xx.ravel(), yy.ravel()]
 
-fig, ax = plt.subplots(figsize=(6, 6))
+    Z = nn.forward(mesh_input)
+    Z = Z.reshape(xx.shape)
 
-contour = ax.contourf(xx, yy, Z, alpha=0.7)
+    fig, ax = plt.subplots(figsize=(6, 6))
 
-for i in range(len(X)):
+    contour = ax.contourf(xx, yy, Z, alpha=0.7)
 
-    if y[i] == 0:
-        ax.scatter(X[i][0], X[i][1], color='red', s=100)
-    else:
-        ax.scatter(X[i][0], X[i][1], color='blue', s=100)
+    for i in range(len(X)):
 
-ax.set_title("XOR Decision Boundary")
+        if y[i] == 0:
+            ax.scatter(X[i][0], X[i][1], color='red', s=100)
+        else:
+            ax.scatter(X[i][0], X[i][1], color='blue', s=100)
 
-st.pyplot(fig)
+    ax.set_title("XOR Decision Boundary")
+
+    st.pyplot(fig)
+
+else:
+
+    st.info(
+        "Decision boundary visualization is only available for 2D input space."
+    )
 
 
 # ============================================================
